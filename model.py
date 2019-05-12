@@ -2,12 +2,13 @@ import pandas as pd
 import math
 from keras.layers import Dense
 from keras.models import Sequential
+from keras.optimizers import Adam
 
 # Load the data
 data = pd.read_csv('./data/data.csv',
                    usecols=['Tmax(C)', 'Tmin(C)', 'RHmean(%)', 'Rain(mm)', 'Usage(kWh)'])
 dataset = data.values.astype(float)
-X = dataset[:, 0:4]
+X = dataset[:, 0:4] / 100
 Y = dataset[:, 4]
 
 # Split datasets into training and test
@@ -18,7 +19,10 @@ train_Y = Y[:val]
 test_X = X[val:]
 test_Y = Y[val:]
 
-print(dataset[0])
+# Scale datasets
+max_energy = train_Y.max()
+train_Y = train_Y / max_energy
+test_Y = test_Y / max_energy
 
 # Build the model with layers
 model = Sequential()
@@ -26,7 +30,9 @@ model.add(Dense(4, input_dim=4,
                 kernel_initializer='normal', activation='relu'))
 model.add(Dense(4, kernel_initializer='normal', activation='relu'))
 model.add(Dense(1, kernel_initializer='normal'))
-model.compile(loss='mean_squared_error', optimizer='adam')
+adam = Adam(lr=1e-3)
+model.compile(loss='mean_squared_error', optimizer=adam, metrics=[
+              'mean_absolute_error', 'mean_squared_error'])
 
 # Fit the model
 history = model.fit(train_X,
