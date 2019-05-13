@@ -4,7 +4,6 @@ import numpy as np
 from keras.layers import Dense, Dropout
 from keras.models import Sequential
 from keras.optimizers import Adam
-import matplotlib.pyplot as plt
 
 # Normalizing function for dataset
 
@@ -60,49 +59,3 @@ history = model.fit(train_X,
 model.save('energy.h5')
 
 print(denorm(model.predict(test_X[-10:, :]), Y))
-
-# # Plot the results of the training
-# acc = history.history['acc']
-# val_acc = history.history['val_acc']
-# loss = history.history['loss']
-# val_loss = history.history['val_loss']
-
-# epochs = range(len(acc))
-
-# plt.plot(epochs, acc, 'bo', label='Training acc')
-# plt.plot(epochs, val_acc, 'b', label='Validation acc')
-# plt.title('Training and validation accuracy')
-# plt.legend()
-
-# plt.figure()
-
-# plt.plot(epochs, loss, 'bo', label='Training loss')
-# plt.plot(epochs, val_loss, 'b', label='Validation loss')
-# plt.title('Training and validation loss')
-# plt.legend()
-
-# plt.show()
-
-# hist = pd.DataFrame(history.history)
-# hist['epoch'] = history.epoch
-
-# plt.figure()
-# plt.xlabel('Epoch')
-# plt.ylabel('Mean Abs Error')
-# plt.plot(hist['epoch'], hist['mae'],
-#          label='Train Error')
-# plt.plot(hist['epoch'], hist['val_mae'],
-#          label='Val Error')
-# plt.ylim([0, 5])
-# plt.legend()
-
-# plt.figure()
-# plt.xlabel('Epoch')
-# plt.ylabel('Mean Square Error')
-# plt.plot(hist['epoch'], hist['mse'],
-#          label='Train Error')
-# plt.plot(hist['epoch'], hist['val_mse'],
-#          label='Val Error')
-# plt.ylim([0, 20])
-# plt.legend()
-# plt.show()
