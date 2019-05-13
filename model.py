@@ -23,6 +23,8 @@ test_Y = Y[val:]
 max_energy = train_Y.max()
 train_Y = train_Y / max_energy
 test_Y = test_Y / max_energy
+(trainX, trainY) = (train_X, train_Y)
+(testX, testY) = (test_X, test_Y)
 
 # Build the model with layers
 model = Sequential()
@@ -34,10 +36,12 @@ adam = Adam(lr=1e-3)
 model.compile(loss='mean_squared_error', optimizer=adam, metrics=[
               'mean_absolute_error', 'mean_squared_error'])
 
+
 # Fit the model
-history = model.fit(train_X,
-                    train_Y,
-                    epochs=200)
+history = model.fit(trainX,
+                    trainY,
+                    epochs=200,
+                    validation_split=0.8)
 model.save('energy.h5')
-results = model.evaluate(test_X, test_Y)
+results = model.evaluate(testX, testY)
 print(results)
