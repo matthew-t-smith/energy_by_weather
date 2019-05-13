@@ -1,52 +1,58 @@
 import pandas as pd
 import math
-from keras.layers import Dense
+import numpy as np
+from keras.layers import Dense, Dropout
 from keras.models import Sequential
-from keras.optimizers import Adam
+from keras.optimizers import RMSprop, Adam
+from keras.regularizers import l2
 import matplotlib.pyplot as plt
+
+# Normalizing function for dataset
+
+
+def norm(d):
+    return (d - d.min()) / (d.max() - d.min())
+
 
 # Load the data
 data = pd.read_csv('./data/data.csv',
                    usecols=['Tmax(C)', 'Tmin(C)', 'RHmean(%)', 'Rain(mm)', 'Usage(kWh)'])
+data.fillna(0, inplace=True)
+data['RHmean(%)'] = data['RHmean(%)'] / 100
 dataset = data.values.astype(float)
-X = dataset[:, 0:4] / 100
-Y = dataset[:, 4]
+X = dataset[:, 0:4]
+Y = dataset[:, -1]
+
+# Normalize the dataset
+normed_X = np.apply_along_axis(norm, 0, X)
+normed_Y = norm(Y)
 
 # Split datasets into training and test
 split = 0.8
-val = math.floor(split*len(X))
-train_X = X[:val]
-train_Y = Y[:val]
-test_X = X[val:]
-test_Y = Y[val:]
-
-# Scale datasets
-max_energy = train_Y.max()
-train_Y = train_Y / max_energy
-test_Y = test_Y / max_energy
-(trainX, trainY) = (train_X, train_Y)
-(testX, testY) = (test_X, test_Y)
+val = math.floor(split*len(normed_X))
+train_X = normed_X[:val]
+train_Y = normed_Y[:val]
+test_X = normed_X[val:]
+test_Y = normed_Y[val:]
 
 # Build the model with layers
 model = Sequential()
-model.add(Dense(4, input_dim=4, activation='relu'))
-model.add(Dense(4, activation='relu'))
-model.add(Dense(1))
-adam = Adam(lr=1e-3)
-model.compile(loss='mean_squared_error', optimizer=adam, metrics=[
-              'mean_absolute_error', 'mean_squared_error'])
+model.add(Dense(4, input_dim=4, kernel_regularizer=l2(l=1e-3), activation='relu'))
+model.add(Dropout(0.4))
+model.add(Dense(4, kernel_regularizer=l2(l=1e-3), activation='relu'))
+model.add(Dropout(0.4))
+model.add(Dense(1, activation='linear'))
+adam = Adam(lr=1e-5)
+model.compile(loss='mean_squared_error',
+              optimizer=adam, metrics=['accuracy'])
 
 
 # Fit the model
-history = model.fit(trainX,
-                    trainY,
-                    epochs=200,
-                    validation_split=0.8)
+history = model.fit(train_X,
+                    train_Y,
+                    epochs=100,
+                    validation_data=(test_X, test_Y))
 model.save('energy.h5')
-
-# Print results of test data
-results = model.evaluate(testX, testY)
-print(results)
 
 # Plot the results of the training
 acc = history.history['acc']
