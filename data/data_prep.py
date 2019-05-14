@@ -37,12 +37,37 @@ final = []
 for index, row in weather.iterrows():
     energy_filter = energy['Date(UTC)'] == row['Date(UTC)']
     rain_filter = rain['Date(UTC)'] == row['Date(UTC)']
-    rainfall = rain[rain_filter]['Amount(mm)'].values.tolist()
-    usage = energy[energy_filter]['usage'].values.tolist()
+
+    rainfall = rain[rain_filter]['Amount(mm)'].values
+    try:
+        rainfall = float(rainfall)
+    except (TypeError, ValueError):
+        rainfall = -1
+
+    usage = energy[energy_filter]['usage'].values
+    try:
+        usage = float(usage)
+    except (TypeError, ValueError):
+        usage = -1
+
+    try:
+        row['RHmean(%)'] = float(row['RHmean(%)']) / 100
+    except (TypeError, ValueError):
+        row['RHmean(%)'] = -1
+
     entry = [row['Date(UTC)'], row['Tmax(C)'], row['Tmin(C)'],
              row['RHmean(%)'], rainfall, usage]
     final.append(entry)
 
 data = pd.DataFrame(final, columns=[
-                    'DateTime', 'Tmax(C)', 'Tmin(C)', 'RHmean(%)', 'Rain(mm)', 'Usage(kWh)'])
+    'DateTime', 'Tmax(C)', 'Tmin(C)', 'RHmean(%)', 'Rain(mm)', 'Usage(kWh)'])
+data.fillna(-1, inplace=True)
+
+print(data.shape)
+drops = []
+for index, row in data.iterrows():
+    if (row.isin(['-', -1.0]).any() or (row['Usage(kWh)'] >= 10)):
+        drops.append(index)
+data.drop(drops, axis='index', inplace=True)
+print(data.shape)
 data.to_csv('./data.csv')
