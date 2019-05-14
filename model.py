@@ -50,9 +50,9 @@ model.compile(loss='mean_squared_error',
 # Fit the model
 history = model.fit(train_X,
                     train_Y,
-                    epochs=300,
+                    epochs=200,
                     validation_data=(test_X, test_Y),
-                    verbose=0)
+                    verbose=1)
 model.save('energy.h5')
 
 hist = pd.DataFrame(history.history)
@@ -66,6 +66,7 @@ plt.plot(hist['epoch'], hist['mean_absolute_error'],
 plt.plot(hist['epoch'], hist['val_mean_absolute_error'],
          label='Val Error')
 plt.legend()
+plt.savefig('./plots/mae.png')
 
 plt.figure()
 plt.xlabel('Epoch')
@@ -75,6 +76,16 @@ plt.plot(hist['epoch'], hist['mean_squared_error'],
 plt.plot(hist['epoch'], hist['val_mean_squared_error'],
          label='Val Error')
 plt.legend()
-plt.show()
+plt.savefig('./plots/mse.png')
 
-print(denorm(model.predict(test_X[-10:, :]), Y))
+plt.figure()
+plt.xlabel('Usage (kWh)')
+plt.ylabel('Temp (C)')
+plt.plot(denorm(model.predict(test_X[-10:, :]),
+                Y), X[-10:, 0], label='High')
+plt.plot(denorm(model.predict(test_X[-10:, :]),
+                Y), X[-10:, 1], label='Low')
+plt.legend()
+plt.savefig('./plots/predictions.png')
+
+plt.show()
